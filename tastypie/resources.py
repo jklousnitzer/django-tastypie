@@ -451,6 +451,15 @@ class Resource(six.with_metaclass(DeclarativeMetaclass)):
             raise ImmediateHttpResponse(response=http.HttpNotImplemented())
 
         self.is_authenticated(request)
+    	#This is a small hack to allow 10.0 to work with our <10.0 authorization
+    	#If there is no older authorization, it will try the new one
+    	authorized=True
+    	try:
+    	    authorized = self._meta.authorization.is_authorized(request)
+    	except:
+    	    pass
+    	if authorized == False:
+    	    raise ImmediateHttpResponse(response=http.HttpUnauthorized())
         self.throttle_check(request)
 
         # All clear. Process the request.
